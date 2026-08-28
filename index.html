@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Simule seu PDF impresso e encadernado, com privacidade e processamento local.">
+  <meta name="theme-color" content="#171714">
+  <title>Folhear — Simulador de impressão</title>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Folhear — início">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>folhear<sup>beta</sup></span>
+      </a>
+      <div class="privacy-note"><span></span> Seu arquivo não sai deste dispositivo</div>
+      <div class="top-actions">
+        <button class="icon-button" id="zoomOut" type="button" aria-label="Diminuir zoom" title="Diminuir zoom">−</button>
+        <output id="zoomValue" aria-live="polite">100%</output>
+        <button class="icon-button" id="zoomIn" type="button" aria-label="Aumentar zoom" title="Aumentar zoom">+</button>
+        <button class="icon-button fullscreen-button" id="fullscreen" type="button" aria-label="Entrar em tela cheia" title="Tela cheia">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="settings" aria-label="Configurações de impressão">
+        <div class="settings-heading">
+          <p>Simulador editorial</p>
+          <h1>Veja antes<br>de imprimir.</h1>
+          <p class="intro">Carregue seu PDF e explore o acabamento, o papel e a encadernação em tempo real.</p>
+        </div>
+
+        <label class="upload-box" id="uploadBox" for="fileInput">
+          <input id="fileInput" type="file" accept="application/pdf,.pdf">
+          <span class="upload-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v5h14v-5"/></svg>
+          </span>
+          <span class="upload-copy"><strong>Escolher PDF</strong><small>ou arraste o arquivo aqui</small></span>
+        </label>
+
+        <div class="file-card" id="fileCard" hidden>
+          <span class="pdf-badge">PDF</span>
+          <span class="file-info"><strong id="fileName"></strong><small id="fileMeta"></small></span>
+          <button id="changeFile" type="button">Trocar</button>
+        </div>
+
+        <section class="control-group">
+          <div class="group-label"><span>Encadernação</span><button class="info" type="button" title="Alterne sem recarregar o arquivo">i</button></div>
+          <div class="segmented two" role="group" aria-label="Encadernação">
+            <button class="active" data-binding="brochure" type="button"><span class="mini-book"></span>Brochura</button>
+            <button data-binding="spiral" type="button"><span class="mini-spiral"></span>Espiral</button>
+          </div>
+          <div class="spiral-colors" id="spiralColors" hidden>
+            <span>Cor da mola</span>
+            <div role="group" aria-label="Cor da espiral">
+              <button class="color-dot black active" data-spiral="black" type="button" aria-label="Preta" title="Preta"></button>
+              <button class="color-dot white" data-spiral="white" type="button" aria-label="Branca" title="Branca"></button>
+              <button class="color-dot metal" data-spiral="metal" type="button" aria-label="Metálica" title="Metálica"></button>
+            </div>
+          </div>
+        </section>
+
+        <section class="control-group grid-controls">
+          <label>Tamanho
+            <select id="sizeSelect"><option value="original">Original do PDF</option><option value="a4">A4 · 210 × 297 mm</option><option value="a5">A5 · 148 × 210 mm</option></select>
+          </label>
+          <label>Orientação
+            <select id="orientationSelect"><option value="portrait">Retrato</option><option value="landscape">Paisagem</option></select>
+          </label>
+        </section>
+
+        <section class="control-group">
+          <span class="label">Papel</span>
+          <div class="segmented four" role="group" aria-label="Gramatura do papel">
+            <button class="active" data-paper="75" type="button">75<small>g/m²</small></button>
+            <button data-paper="90" type="button">90<small>g/m²</small></button>
+            <button data-paper="120" type="button">120<small>g/m²</small></button>
+            <button data-paper="150" type="button">150<small>g/m²</small></button>
+          </div>
+        </section>
+
+        <section class="control-group">
+          <span class="label">Capa</span>
+          <div class="segmented two" role="group" aria-label="Navegação entre capa e contracapa">
+            <button class="active" data-jump="start" type="button">Início</button>
+            <button data-jump="end" type="button">Fim</button>
+          </div>
+        </section>
+      </aside>
+
+      <section class="viewer" id="viewer" aria-label="Visualizador do livro">
+        <div class="viewer-top">
+          <div class="view-label"><span id="viewTitle">Pré-visualização</span><small id="viewSubtitle">Carregue um PDF para começar</small></div>
+          <div class="view-switch" role="group" aria-label="Modo de visualização">
+            <button class="active" data-view="pages" type="button">Folhear</button>
+            <button data-view="object" type="button">Objeto 3D</button>
+          </div>
+          <div class="status-chip" id="statusChip">SEM ARQUIVO</div>
+        </div>
+
+        <div class="stage-wrap">
+          <div class="empty-state" id="emptyState">
+            <div class="empty-book" aria-hidden="true"><span></span><span></span><i></i></div>
+            <h2>Seu projeto ganha forma aqui.</h2>
+            <p>Escolha um PDF para folhear uma simulação do material impresso.</p>
+            <button id="emptyUpload" type="button">Selecionar um PDF</button>
+          </div>
+
+          <div class="loading-state" id="loadingState" hidden>
+            <div class="loader"></div><strong>Preparando o seu livro…</strong><span id="loadingText">Lendo o PDF localmente</span>
+          </div>
+
+          <div class="book-stage" id="bookStage" hidden tabindex="0" aria-label="Livro. Arraste ou clique nas laterais para folhear.">
+            <div class="book brochure soft" id="book">
+              <div class="book-shadow"></div>
+              <div class="page-stack left-stack"></div>
+              <div class="page-stack right-stack"></div>
+              <div class="page left-page" id="leftPage"><canvas></canvas><span class="page-number"></span><div class="paper-grain"></div></div>
+              <div class="gutter" id="gutter"></div>
+              <div class="spiral-wire" id="spiralWire" aria-hidden="true"></div>
+              <div class="page right-page" id="rightPage"><canvas></canvas><span class="page-number"></span><div class="paper-grain"></div></div>
+              <div class="turn-page" id="turnPage"><canvas></canvas><div class="turn-back"><canvas id="turnBackCanvas"></canvas><span></span></div></div>
+              <div class="drag-hint" id="dragHint"><span>arraste para folhear</span></div>
+            </div>
+            <button class="nav-arrow prev" id="prevPage" type="button" aria-label="Página anterior">←</button>
+            <button class="nav-arrow next" id="nextPage" type="button" aria-label="Próxima página">→</button>
+          </div>
+
+          <div class="object-stage" id="objectStage" hidden tabindex="0" aria-label="Livro tridimensional. Arraste para girar e use a roda do mouse para aproximar.">
+            <div class="object-book" id="objectBook">
+              <div class="object-face object-front"><canvas id="objectFront"></canvas><span class="cover-sheen"></span></div>
+              <div class="object-face object-back"><canvas id="objectBack"></canvas><span class="cover-sheen"></span></div>
+              <div class="object-face object-spine"><span id="spineTitle">FOLHEAR</span></div>
+              <div class="object-face object-edge"></div>
+              <div class="object-face object-top"></div>
+              <div class="object-face object-bottom"></div>
+              <div class="object-sheet" id="objectSheet"><canvas id="objectTurn"></canvas><div class="object-sheet-back"><canvas id="objectTurnBack"></canvas><span></span></div></div>
+              <div class="object-coil" id="objectCoil" aria-hidden="true"></div>
+            </div>
+            <button class="object-arrow object-prev" id="objectPrev" type="button" aria-label="Página anterior no modo 3D">←</button>
+            <button class="object-arrow object-next" id="objectNext" type="button" aria-label="Próxima página no modo 3D">→</button>
+            <div class="object-controls">
+              <button id="resetObject" type="button">↺ Centralizar</button>
+              <span>Arraste para girar · Role para ampliar</span>
+            </div>
+            <div class="thickness-card"><span>Espessura estimada</span><strong id="thicknessValue">—</strong><small id="thicknessFormula">—</small></div>
+          </div>
+        </div>
+
+        <footer class="viewer-footer">
+          <span id="pageIndicator">—</span>
+          <div class="progress"><i id="progressBar"></i></div>
+          <span id="sheetInfo">— folhas</span>
+        </footer>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
